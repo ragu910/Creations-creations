@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DSA File System Simulator | Team 6</title>
+<style>
+:root{--bg:#0b1020;--panel:#131b2e;--panel2:#19243b;--line:#293754;--text:#edf3ff;--muted:#9aabc8;--accent:#65d6c4;--blue:#79aaff;--red:#ff8585;--yellow:#ffd477}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top right,#172b4c 0,#0b1020 45%);color:var(--text);font:15px/1.5 system-ui,Segoe UI,Arial,sans-serif}
+header{padding:26px clamp(18px,4vw,52px);border-bottom:1px solid var(--line);background:#0b1020cc}
+.eyebrow{color:var(--accent);font-weight:700;letter-spacing:.13em;text-transform:uppercase;font-size:12px}
+h1{margin:5px 0;font-size:clamp(25px,4vw,38px)}header p{color:var(--muted);margin:6px 0 0}
+main{max-width:1250px;margin:auto;padding:24px clamp(14px,3vw,34px) 60px}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:18px}
+.stat,.panel{background:linear-gradient(145deg,var(--panel),#10182a);border:1px solid var(--line);border-radius:16px}
+.stat{padding:15px}.stat strong{display:block;font-size:24px;color:var(--accent)}.stat span{color:var(--muted);font-size:13px}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0}.tab,button{border:1px solid var(--line);background:var(--panel2);color:var(--text);border-radius:10px;padding:10px 14px;cursor:pointer;font-weight:600}.tab.active,button.primary{background:var(--accent);color:#06221f;border-color:var(--accent)}button:hover,.tab:hover{filter:brightness(1.12)}button.danger{color:#ffdada;border-color:#78444b;background:#3a2029}
+.panel{padding:20px;margin-bottom:16px}.panel h2{font-size:19px;margin:0 0 12px}.panel h3{font-size:15px;margin:15px 0 7px;color:var(--blue)}
+.grid2{display:grid;grid-template-columns:1.15fr .85fr;gap:16px}.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+input,select{background:#0b1324;border:1px solid var(--line);border-radius:9px;padding:10px;color:var(--text);min-width:0}
+input{flex:1;min-width:130px}.tree{font-family:ui-monospace,Consolas,monospace;background:#0a1222;border:1px solid var(--line);border-radius:12px;padding:14px;min-height:230px;white-space:pre-wrap;overflow:auto}
+.muted{color:var(--muted)}.result{background:#0a1222;border:1px solid var(--line);padding:13px;border-radius:10px;min-height:50px;white-space:pre-wrap;overflow:auto;font-family:ui-monospace,Consolas,monospace}
+.hidden{display:none}.pill{display:inline-block;border:1px solid var(--line);padding:3px 8px;border-radius:99px;color:var(--muted);font-size:12px}
+table{border-collapse:collapse;width:100%;font-size:14px}td,th{padding:9px;border-bottom:1px solid var(--line);text-align:left}th{color:var(--blue)}
+footer{text-align:center;color:var(--muted);padding:20px;border-top:1px solid var(--line)}
+@media(max-width:760px){.stats{grid-template-columns:repeat(2,1fr)}.grid2{grid-template-columns:1fr}.panel{padding:15px}}
+</style>
+</head>
+<body>
+<header>
+ <div class="eyebrow">KPRIET · Data Structures & Algorithms</div>
+ <h1>File System Simulator</h1>
+ <p>Interactive browser demonstration · Team 6</p>
+ <p class="muted">Ragu Nandan J S · Rohith N B · Mukesh Madhavan T · Raj Prabha V</p>
+</header>
+<main>
+ <section class="stats">
+  <div class="stat"><strong id="fileCount">3</strong><span>Files in demo tree</span></div>
+  <div class="stat"><strong>5</strong><span>DSA structures / concepts</span></div>
+  <div class="stat"><strong>O(V²)</strong><span>Dijkstra (matrix version)</span></div>
+  <div class="stat"><strong>Browser</strong><span>Runs locally, no sign-in</span></div>
+ </section>
+ <nav class="tabs">
+  <button class="tab active" data-tab="files">File Manager</button>
+  <button class="tab" data-tab="trees">Tree Traversals</button>
+  <button class="tab" data-tab="graphs">Graph Algorithms</button>
+  <button class="tab" data-tab="expression">Expression Tree</button>
+  <button class="tab" data-tab="about">About</button>
+ </nav>
+
+ <section id="files" class="tabpage">
+  <div class="grid2">
+   <div class="panel">
+    <h2>Directory structure <span class="pill">General Tree</span></h2>
+    <div id="tree" class="tree"></div>
+   </div>
+   <div class="panel">
+    <h2>Create an item</h2>
+    <label class="muted">Parent directory</label>
+    <select id="parent"></select>
+    <div class="row" style="margin-top:9px">
+     <input id="itemName" placeholder="Name (e.g. LabReport.pdf)">
+     <select id="itemType"><option value="file">File</option><option value="dir">Directory</option></select>
+    </div>
+    <div class="row" style="margin-top:9px">
+     <input id="itemSize" type="number" min="0" value="100" placeholder="Size in KB">
+     <button class="primary" onclick="createItem()">Add item</button>
+    </div>
+    <h3>Delete selected item</h3>
+    <select id="deleteTarget"></select>
+    <button class="danger" style="margin-top:9px" onclick="deleteItem()">Delete subtree</button>
+    <p class="muted">This is an in-browser demonstration. It changes only the sample data held in this page.</p>
+   </div>
+  </div>
+ </section>
+
+ <section id="trees" class="tabpage hidden">
+  <div class="panel">
+   <h2>General Tree Traversals</h2>
+   <p class="muted">Choose a traversal to visit every node in the sample directory tree.</p>
+   <div class="row">
+    <button class="primary" onclick="showTraversal('pre')">Preorder</button>
+    <button onclick="showTraversal('post')">Postorder</button>
+    <button onclick="showTraversal('level')">Level order</button>
+   </div>
+   <h3>Traversal output</h3><div class="result" id="traversalResult">Select a traversal.</div>
+  </div>
+  <div class="grid2">
+   <div class="panel"><h2>BST file-size index</h2><p class="muted">Sample file sizes, sorted by size.</p><div class="result" id="bstResult"></div></div>
+   <div class="panel"><h2>AVL filename index</h2><p class="muted">Filename index shown in sorted order. The C implementation contains AVL rotations and balancing.</p><div class="result" id="avlResult"></div></div>
+  </div>
+ </section>
+
+ <section id="graphs" class="tabpage hidden">
+  <div class="panel">
+   <h2>Symbolic-link graph demonstration</h2>
+   <p class="muted">Sample directed graph: N0 → N1 → N2 → N0 and N2 → N3; N4 → N5.</p>
+   <div class="row">
+    <button class="primary" onclick="runBFS()">BFS from N0</button>
+    <button onclick="runDFS()">DFS from N0</button>
+    <button onclick="runCycle()">Cycle detection</button>
+    <button onclick="runTopo()">Kahn topological sort</button>
+    <button onclick="runDijkstra()">Dijkstra N0 → N3</button>
+   </div>
+   <h3>Algorithm output</h3><div id="graphResult" class="result">Select an algorithm.</div>
+  </div>
+  <div class="panel">
+   <h2>Adjacency matrix</h2>
+   <div id="matrix"></div>
+  </div>
+ </section>
+
+ <section id="expression" class="tabpage hidden">
+  <div class="panel">
+   <h2>Postfix Expression Tree Calculator</h2>
+   <p class="muted">Enter space-separated integers and operators. Example: <code>12 3 * 4 +</code></p>
+   <div class="row"><input id="postfix" value="12 3 * 4 +" aria-label="Postfix expression"><button class="primary" onclick="evaluatePostfix()">Build and evaluate</button></div>
+   <h3>Expression result</h3><div id="exprResult" class="result">Result will appear here.</div>
+  </div>
+ </section>
+
+ <section id="about" class="tabpage hidden">
+  <div class="panel">
+   <h2>Project information</h2>
+   <p>This website is a front-end demonstration of the DSA File System Simulator assignment. It provides a visual directory tree, tree traversals, sample graph algorithms and a postfix expression calculator.</p>
+   <h3>Core data structures</h3>
+   <ul>
+    <li>General Tree — directories and files.</li>
+    <li>Binary Search Tree — file-size indexing concept.</li>
+    <li>AVL Tree — balanced filename indexing concept.</li>
+    <li>Graph — adjacency matrix/list, BFS, DFS, cycle detection, topological sorting and Dijkstra.</li>
+    <li>Expression Tree — postfix expression evaluation.</li>
+   </ul>
+   <p><strong>Implementation note:</strong> This standalone website is a JavaScript browser demonstration. It does not connect to or execute the separate C executable. The C program remains the command-line implementation for the assignment.</p>
+  </div>
+ </section>
+</main>
+<footer>DSA File System Simulator · Team 6 · Educational demonstration</footer>
+<script>
+const root={name:"root",type:"dir",size:0,children:[
+ {name:"Documents",type:"dir",size:0,children:[
+  {name:"College",type:"dir",size:0,children:[
+   {name:"DSA_Assignment.pdf",type:"file",size:850,children:[]},
+   {name:"Notes.txt",type:"file",size:120,children:[]}
+  ]}
+ ]},
+ {name:"Pictures",type:"dir",size:0,children:[
+  {name:"Photo.jpg",type:"file",size:2048,children:[]}
+ ]}
+]};
+const graph=[[0,1,0,0,0,0],[0,0,1,0,0,0],[1,0,0,1,0,0],[0,0,0,0,0,0],[0,0,0,0,0,1],[0,0,0,0,0,0]];
+const weights=graph.map(row=>row.map(x=>x?1:0));
+function walk(node,path="root"){let a=[{node,path}];for(const c of node.children||[])a=a.concat(walk(c,path+"/"+c.name));return a}
+function renderTree(n,depth=0){let s="  ".repeat(depth)+(n.type==="file"?"📄 ":"📁 ")+n.name+(n.type==="file"?" ("+n.size+" KB)":"")+"\n";for(const c of n.children||[])s+=renderTree(c,depth+1);return s}
+function refresh(){
+ document.getElementById("tree").textContent=renderTree(root);
+ const all=walk(root);const dirs=all.filter(x=>x.node.type==="dir");
+ const parent=document.getElementById("parent"),del=document.getElementById("deleteTarget");
+ parent.innerHTML=dirs.map(x=>`<option value="${x.path}">${x.path}</option>`).join("");
+ del.innerHTML=all.filter(x=>x.path!=="root").map(x=>`<option value="${x.path}">${x.path}</option>`).join("");
+ const files=all.filter(x=>x.node.type==="file");
+ document.getElementById("fileCount").textContent=files.length;
+ document.getElementById("bstResult").textContent=files.slice().sort((a,b)=>a.node.size-b.node.size).map(x=>`${x.node.name} : ${x.node.size} KB`).join("\n")||"No files";
+ document.getElementById("avlResult").textContent=files.map(x=>x.node.name).sort().join("\n")||"No files";
+}
+function getPath(path){let parts=path.split("/").slice(1),n=root;for(const p of parts){n=(n.children||[]).find(c=>c.name===p);if(!n)return null}return n}
+function createItem(){
+ const p=getPath(document.getElementById("parent").value),name=document.getElementById("itemName").value.trim(),type=document.getElementById("itemType").value,size=Number(document.getElementById("itemSize").value);
+ if(!p||!name||name.includes("/")||p.children.some(c=>c.name===name)){alert("Enter a valid unique name and parent.");return}
+ if(type==="file"&&(!Number.isFinite(size)||size<0)){alert("Enter a valid file size.");return}
+ p.children.push({name,type,size:type==="file"?size:0,children:[]});document.getElementById("itemName").value="";refresh();
+}
+function deleteItem(){const path=document.getElementById("deleteTarget").value,parts=path.split("/"),name=parts.pop(),parent=getPath(parts.join("/"));if(!parent)return;parent.children=parent.children.filter(c=>c.name!==name);refresh()}
+function showTraversal(mode){
+ let out=[];
+ if(mode==="pre"){function f(n){out.push(n.name);(n.children||[]).forEach(f)}f(root)}
+ if(mode==="post"){function f(n){(n.children||[]).forEach(f);out.push(n.name)}f(root)}
+ if(mode==="level"){let q=[root];while(q.length){let n=q.shift();out.push(n.name);q.push(...(n.children||[]))}}
+ document.getElementById("traversalResult").textContent=out.join(" → ");
+}
+function runBFS(){let q=[0],seen=[false,false,false,false,false,false],out=[];seen[0]=true;while(q.length){let u=q.shift();out.push("N"+u);for(let v=0;v<6;v++)if(graph[u][v]&&!seen[v]){seen[v]=true;q.push(v)}}document.getElementById("graphResult").textContent="BFS: "+out.join(" → ")}
+function runDFS(){let seen=Array(6).fill(false),out=[];function dfs(u){seen[u]=true;out.push("N"+u);for(let v=0;v<6;v++)if(graph[u][v]&&!seen[v])dfs(v)}dfs(0);document.getElementById("graphResult").textContent="DFS from N0: "+out.join(" → ")}
+function runCycle(){let color=Array(6).fill(0),found=false;function dfs(u){color[u]=1;for(let v=0;v<6;v++)if(graph[u][v]){if(color[v]===1)found=true;else if(color[v]===0)dfs(v)}color[u]=2}for(let i=0;i<6;i++)if(!color[i])dfs(i);document.getElementById("graphResult").textContent=found?"Cycle detected: N0 → N1 → N2 → N0":"No cycle detected"}
+function runTopo(){let indeg=Array(6).fill(0);for(let u=0;u<6;u++)for(let v=0;v<6;v++)if(graph[u][v])indeg[v]++;let q=[];for(let i=0;i<6;i++)if(!indeg[i])q.push(i);let out=[];while(q.length){let u=q.shift();out.push("N"+u);for(let v=0;v<6;v++)if(graph[u][v]&&--indeg[v]===0)q.push(v)}document.getElementById("graphResult").textContent=out.length<6?"Cycle exists; a complete topological order is not possible. Partial order: "+out.join(" → "):out.join(" → ")}
+function runDijkstra(){let d=Array(6).fill(Infinity),used=Array(6).fill(false),prev=Array(6).fill(-1);d[0]=0;for(let k=0;k<6;k++){let u=-1;for(let i=0;i<6;i++)if(!used[i]&&(u<0||d[i]<d[u]))u=i;if(u<0||!isFinite(d[u]))break;used[u]=true;for(let v=0;v<6;v++)if(graph[u][v]&&!used[v]&&d[u]+weights[u][v]<d[v]){d[v]=d[u]+weights[u][v];prev[v]=u}}if(!isFinite(d[3])){document.getElementById("graphResult").textContent="N3 is unreachable";return}let p=[];for(let x=3;x!==-1;x=prev[x])p.unshift("N"+x);document.getElementById("graphResult").textContent="Shortest path: "+p.join(" → ")+"\nTotal cost: "+d[3]}
+function evaluatePostfix(){
+ const tokens=document.getElementById("postfix").value.trim().split(/\s+/),st=[];
+ try{for(const t of tokens){if(["+","-","*","/"].includes(t)){if(st.length<2)throw Error("Not enough operands");let b=st.pop(),a=st.pop(),v;if(t==="+")v=a+b;if(t==="-")v=a-b;if(t==="*")v=a*b;if(t==="/"){if(b===0)throw Error("Division by zero");v=a/b}st.push(v)}else{if(!/^-?\d+$/.test(t))throw Error("Invalid token: "+t);st.push(Number(t))}}if(st.length!==1)throw Error("Malformed postfix expression");document.getElementById("exprResult").textContent="Postfix: "+tokens.join(" ")+"\nInfix evaluation result: "+st[0]}catch(e){document.getElementById("exprResult").textContent="Error: "+e.message}
+}
+document.querySelectorAll(".tab").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));document.querySelectorAll(".tabpage").forEach(x=>x.classList.add("hidden"));b.classList.add("active");document.getElementById(b.dataset.tab).classList.remove("hidden")}));
+function renderMatrix(){let h="<table><tr><th></th>"+Array.from({length:6},(_,i)=>`<th>N${i}</th>`).join("")+"</tr>";for(let i=0;i<6;i++)h+=`<tr><th>N${i}</th>`+graph[i].map(v=>`<td>${v}</td>`).join("")+"</tr>";document.getElementById("matrix").innerHTML=h+"</table>"}
+refresh();renderMatrix();
+</script>
+</body>
+</html>
